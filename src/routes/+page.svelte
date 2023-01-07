@@ -1,5 +1,5 @@
 <script>
-	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals, testCalcStatistics } from "$helpers/helpers";
+	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/helpers";
     import { onMount } from "svelte";
 
     export let data;
@@ -7,8 +7,11 @@
     // const firstRoundMatches = import.meta.glob("../lib/XML_TestData/XMLFirstRound/*.xml");
     // const secondRoundMatches = import.meta.glob("../lib/XML_TestData/XMLSecondRound/*.xml");
 
-    const tournamentResultsTableParams = {
+    const rankingColumn = {
         ranking: "Vieta pēc kārtas",
+    };
+
+    const tournamentResultsTableParams = {
         teamName: "Komandas nosaukums",
         totalPoints: "Kopā iegūtie punkti",
         winsInFullTime: "Uzvaru skaits pamatlaikā",
@@ -60,7 +63,6 @@
 
     function parseMatchData() {
         // Lauki, kuros glabās informāciju par katru komandu
-        // let teamRanking = {};
         let teamRanking = [];
 
         matchesJsonData.forEach((match, i) => {
@@ -77,7 +79,7 @@
             let matchTotalGoalCountForEachTeam = [];
             let matchTeamGoalStatistics = [];
 
-            let testCopyData = {};
+            let teamStatisticsForMatch = {};
 
             matchTeams.forEach((team, i) => {
                 console.log(`TEAM DATA for match nr.${i+1}:`);
@@ -94,13 +96,7 @@
                 matchTeamGoalStatistics.push(teamGoalStatistics);
                 matchTotalGoalCountForEachTeam.push(teamGoalInfo);
 
-                testCopyData[teamName] = teamGoalInfo;
-
-                // Pievieno pašreizējo komandu pie kopējā komandu reitinga:
-                // teamRanking[teamName] = {};
-                // teamRanking[teamName] = {...calculateStatisticsForTeam(teamGoalInfo)};
-
-                // teamRanking.push(teamGoalInfo);
+                teamStatisticsForMatch[teamName] = teamGoalInfo;
             });
 
             console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°");
@@ -108,26 +104,24 @@
             console.dir("matchTotalGoalCountForEachTeam DATA AFTER EACH TEAM IS PROCESSED FOR MATCH:", matchTotalGoalCountForEachTeam);
             
             // Iet cauri visiem goliem katrai komandai, saskaita kopā iegūto un skatās, vai pēdējais iesistais gols ir bijis pamatlaikā vai papildlaikā:
-            let hasMatchEndedInFullTime = getWinnerOfMatch(matchTotalGoalCountForEachTeam);
+            let winnerOfMatch = getWinnerOfMatch(matchTotalGoalCountForEachTeam);
             console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°");
 
-            testCopyData['hasMatchEndedInFullTime'] = hasMatchEndedInFullTime;
+            teamStatisticsForMatch['hasMatchEndedInFullTime'] = winnerOfMatch.wonMatchInFullTime;
 
-            console.dir("Test copy data by adding hasMatchEndedInFullTime:", testCopyData);
+            console.dir("teamStatisticsForMatch after adding hasMatchEndedInFullTime:", teamStatisticsForMatch);
 
 
             // Aprēķina katras komandas vietu reitingu tabulā:
-            // teamRanking[i] = calculateStatisticsForMatchTeams(matchTotalGoalCountForEachTeam, hasMatchEndedInFullTime);
-            
-            teamRanking.push(testCopyData);
+            teamRanking.push(teamStatisticsForMatch);
         });
 
-        tournamentData = testCalcStatistics(teamRanking);
+        tournamentData = calculateStatisticsForMatchTeams(teamRanking);
 
-        console.log("EXPECTED RESULT OF TOTAL POINTS FOR EACH TEAM:");
-        console.log('Barcelona: 2 + 1 + 5 + 1 = 9');
-        console.log('Skolmeistari: 3 + 5 + 1 + 1 = 10');
-        console.log('Veiklie: 5 + 1 + 5 + 5 = 16');
+        // console.log("EXPECTED RESULT OF TOTAL POINTS FOR EACH TEAM:");
+        // console.log('Barcelona: 2 + 1 + 5 + 1 = 9');
+        // console.log('Skolmeistari: 3 + 5 + 1 + 1 = 10');
+        // console.log('Veiklie: 5 + 1 + 5 + 5 = 16');
         console.log("Total ranking:", tournamentData);
     };
 
@@ -167,6 +161,11 @@
         <table class="w-full">
             <thead>
                 <tr>
+                    <th class="border items-center">
+                        <div class="flex items-center gap-2">
+                            <span>{rankingColumn.ranking}</span>
+                        </div>
+                    </th>
                     {#each tournamentResultsTableColumns as column}
                         <th class="border items-center">
                             <div class="flex items-center gap-2">
@@ -177,8 +176,14 @@
                 </tr>
             </thead>
             <tbody>
-                {#each Object.entries(tournamentData) ?? [] as [teamName, teamData]}
+                {#each tournamentData ?? [] as [teamName, teamData], i}
                     <tr>
+                        <td class="border">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <div class="content-center w-36">{i + 1}</div>
+                            </div>
+                        </td>
+
                         {#each tournamentResultsTableColumns as column}
                             <td class="border">
                                 <div class="flex flex-wrap items-center gap-1">

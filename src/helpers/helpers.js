@@ -41,7 +41,13 @@ export function calculateAdditionalStatistics(teamToBeSaved, secondTeam, hasMatc
     return result;
 }
 
-export function testCalcStatistics(teamRanking) {
+/**
+ * Aprēķina statistiku visām mača komandām
+ * 
+ * @param {*} teamRanking 
+ * @returns - atgriež masīvu, kur katra vērtība ir masīvs, kas sastāv no komandas nosaukuma un tās informācijas
+ */
+export function calculateStatisticsForMatchTeams(teamRanking) {
     console.log("Team ranking final answer: ", teamRanking);
 
     let fullStatisticsByMatch = teamRanking.reduce((acc, matchTeamInfo) => {
@@ -68,9 +74,12 @@ export function testCalcStatistics(teamRanking) {
     let statisticsForAllMatchesCombined = [...fullStatisticsByMatch].reduce((acc, matchTeamInfo, index) => {
         for (const teamName in matchTeamInfo) {
             if (acc[teamName] === undefined) {
-                acc[teamName] = {...matchTeamInfo[teamName]};
+                acc[teamName] = {
+                    ranking: index,
+                    ...matchTeamInfo[teamName]
+                };
             } else {
-                acc[teamName].ranking = 42;
+                acc[teamName].ranking = index + 1;
                 acc[teamName].teamName = teamName;
                 acc[teamName].totalPoints       = acc[teamName]?.totalPoints       +  matchTeamInfo[teamName].totalPoints,
                 acc[teamName].winsInFullTime    = acc[teamName]?.winsInFullTime    +  matchTeamInfo[teamName].winsInFullTime,
@@ -85,59 +94,11 @@ export function testCalcStatistics(teamRanking) {
         return {...acc};
     }, {});
 
-    debugger;
+    // Sakārto komandu statistikas datus pēc iegūtajiem punktiem (komanda ar lielāko punktu skaitu būs pirmā):
+    let sortedStatisticsByTotalPoints = Object.entries(statisticsForAllMatchesCombined)
+            .sort(([, prevTeamData], [, nextTeamData]) => nextTeamData.totalPoints - prevTeamData.totalPoints);
 
-    console.log("Test data par teamRanking:", statisticsForAllMatchesCombined);
-
-    return {...statisticsForAllMatchesCombined};
-}
-
-/**
- * Aprēķina statistiku visām mača komandām
- * @param {*} matchTotalGoalCountForEachTeam 
- * @param {*} hasMatchEndedInFullTime 
- */
-export function calculateStatisticsForMatchTeams(matchTotalGoalCountForEachTeam, hasMatchEndedInFullTime) {
-    let result = {};
-
-    if (matchTotalGoalCountForEachTeam !== undefined) {
-        let data = matchTotalGoalCountForEachTeam.map(item => {
-            return {...item}; 
-        });
-
-        // TODO: Šeit pievienot pārējo statistiku no "tournamentResultsTableColumns" mainīgā:
-        result = data.map(info => {
-            const totalPoints = info.totalPoints ?? 0;
-
-            return {...info, totalPoints: totalPoints + calculatePointsForTeamInMatch(info, hasMatchEndedInFullTime)}
-        });
-
-        // data.forEach(info => {
-        //     console.dir("Tekosais info:", info);
-        //     let newInfo = {...info};
-
-        //     result[newInfo.teamName] = {
-        //         ...newInfo, 
-        //         totalPoints: calculatePointsForTeamInMatch(newInfo)
-        //     };
-        // });
-    
-        // for (const team in data) {
-        //     result[team] = Object.keys(data).reduce((acc, teamName) => {
-        //         console.dir("Tekosais acc: ", acc);
-        //         acc.totalPoints = acc.totalPoints + calculatePointsForTeamInMatch(data[teamName]);
-        //         return acc;
-        //     }, {
-        //         ...data[team],
-        //         totalPoints: 0
-        //     });
-        // }
-
-        console.dir("Tekosais result par visām komandām mačā:", result);
-
-    }
-
-    return {...result};
+    return [...sortedStatisticsByTotalPoints];
 }
 
 export function isGoalScoredInExtraTime(scoringTime) {
@@ -153,10 +114,10 @@ export function isGoalScoredInExtraTime(scoringTime) {
 }
 
 export function getWinnerOfMatch(matchTotalGoalCountForEachTeam) {
-    let result = false;
+    let result = {};
     if (matchTotalGoalCountForEachTeam !== undefined) {
         /** @type {Object} */
-        let winnerOfMatch = Object.keys(matchTotalGoalCountForEachTeam)
+        result = Object.keys(matchTotalGoalCountForEachTeam)
             .reduce((prev, next) => {
                 let prevTeam = matchTotalGoalCountForEachTeam[prev], 
                     nextTeam = matchTotalGoalCountForEachTeam[next];
@@ -170,8 +131,6 @@ export function getWinnerOfMatch(matchTotalGoalCountForEachTeam) {
                 
                 return result;
             });
-
-        result = winnerOfMatch.wonMatchInFullTime;
     }
 
     return result;
