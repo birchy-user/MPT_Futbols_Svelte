@@ -1,6 +1,10 @@
 <script>
-	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/helpers";
     import { onMount } from "svelte";
+	import { goto } from '$app/navigation';
+
+	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/helpers";
+	import Spinner from "$components/loader/Spinner.svelte";
+	import PageTitle from "$components/PageTitle.svelte";
 
     export let data;
 
@@ -144,18 +148,19 @@
 
 </script>
 
+<PageTitle />
+
 {#if matchesJsonData.length > 0 === false} 
-    <div>
-        <span>Ielādē LFL datus...</span>
-    </div>
+    <span>Ielādē LFL datus...</span>
+    <Spinner />
 {:else}
     <!-- <button on:click={loadMatches}>
         Ielādēt spēļu datus
     </button> -->
 
-    <button on:click={testRequestToCustomAPI}>
+    <!-- <button on:click={testRequestToCustomAPI}>
         TEST LOAD DATA
-    </button>
+    </button> -->
 
     <div class="relative">
         <table class="w-full">
