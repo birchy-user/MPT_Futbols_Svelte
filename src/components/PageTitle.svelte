@@ -1,5 +1,5 @@
 <script>
-    export let title = 'LFL līgas turnīra statistika';
+    export let title = 'LFL līga';
 </script>
 
 <svelte:head>

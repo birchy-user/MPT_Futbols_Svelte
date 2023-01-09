@@ -9,3 +9,7 @@
 		<slot />
 	</main>
 </div>
+
+<style lang="scss" global>
+    @import "../assets/main";
+</style>

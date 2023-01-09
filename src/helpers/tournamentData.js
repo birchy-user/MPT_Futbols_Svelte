@@ -48,8 +48,6 @@ export function calculateAdditionalStatistics(teamToBeSaved, secondTeam, hasMatc
  * @returns - atgriež masīvu, kur katra vērtība ir masīvs, kas sastāv no komandas nosaukuma un tās informācijas
  */
 export function calculateStatisticsForMatchTeams(teamRanking) {
-    console.log("Team ranking final answer: ", teamRanking);
-
     let fullStatisticsByMatch = teamRanking.reduce((acc, matchTeamInfo) => {
         let matchTeamInfoUnpacked = Object.values(matchTeamInfo);
         let firstTeam = matchTeamInfoUnpacked[0],
@@ -75,11 +73,9 @@ export function calculateStatisticsForMatchTeams(teamRanking) {
         for (const teamName in matchTeamInfo) {
             if (acc[teamName] === undefined) {
                 acc[teamName] = {
-                    ranking: index,
                     ...matchTeamInfo[teamName]
                 };
             } else {
-                acc[teamName].ranking = index + 1;
                 acc[teamName].teamName = teamName;
                 acc[teamName].totalPoints       = acc[teamName]?.totalPoints       +  matchTeamInfo[teamName].totalPoints,
                 acc[teamName].winsInFullTime    = acc[teamName]?.winsInFullTime    +  matchTeamInfo[teamName].winsInFullTime,
@@ -145,7 +141,6 @@ export function getWinnerOfMatch(matchTotalGoalCountForEachTeam) {
 export function parseTeamGoals(teamGoals, teamName) {
     let result = [];
     let teamGoalInfo = {};
-    let matchGoalTimes = [];
 
     if (teamGoals !== undefined) {
         if (teamGoals.constructor.name == "Array") {

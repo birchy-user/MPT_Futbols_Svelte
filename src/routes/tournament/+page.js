@@ -5,9 +5,11 @@ export async function load({ fetch, event }) {
         const f = (event && event.fetch) || fetch;
 
         // Pieņemam, ka visi nepieciešamie JSON dati atrodas iekš "src/lib/JSON_TestData" mapes
-        const matchesStatisticalFileData = import.meta.glob('$lib/JSON_TestData/**/*.json');
+        // const matchesStatisticalFileData = import.meta.glob('$lib/JSON_TestData/**/*.json');
         // const firstRoundMatches = import.meta.glob('$lib/JSON_TestData/JSONFirstRound/*.json');
         // const secondRoundMatches = import.meta.glob('$lib/JSON_TestData/JSONSecondRound/*.json');
+
+        const matchesStatisticalFileData = import.meta.glob('$lib/LFLDataFiles/**/*.json');
         
         // let matchesJsonData = [];
         // matchesJsonData.push(matchesStatisticalFileData);

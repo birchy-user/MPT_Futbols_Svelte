@@ -34,6 +34,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"node-sass": "^8.0.0"
+		"node-sass": "^8.0.0",
+		"redis": "^4.5.1"
 	}
 }
