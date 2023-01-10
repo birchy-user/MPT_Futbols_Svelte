@@ -1,6 +1,5 @@
 <script>
     import { onMount } from "svelte";
-	import { goto } from '$app/navigation';
 
 	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/tournamentData";
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
@@ -8,10 +7,10 @@
 	import PageTitle from "$components/PageTitle.svelte";
 	import Table from "$components/Table.svelte";
 
-    export let data;
+    import { LFLData } from "$lib/stores";
+	import { getParsedJsonData } from "$helpers/generators";
 
     const title = 'LFL līgas turnīra statistika';
-
     const breadcrumbs = [
         {
             href: '/',
@@ -21,13 +20,6 @@
             label: 'Turnīra statistika'
         }
     ];
-
-    // const firstRoundMatches = import.meta.glob("../lib/XML_TestData/XMLFirstRound/*.xml");
-    // const secondRoundMatches = import.meta.glob("../lib/XML_TestData/XMLSecondRound/*.xml");
-
-    const rankingColumn = {
-        ranking: "#",
-    };
 
     const tournamentResultsTableParams = {
         teamName: "Komanda",
@@ -40,42 +32,9 @@
         totalGoalsAgainst: "Zaudētie vārti"
     };
 
-    const tournamentResultsTableColumns = Object.keys(tournamentResultsTableParams);
-
-    let matchesXMLData = [];
     let matchesJsonData = [];
-
     let tournamentData = [];
 
-    /** @type {Array.<string>} */
-    let matchesXmlFileNames = [];
-
-    async function loadMatches() {
-        matchesXmlFileNames.forEach(matchFile => {
-            matchesXMLData.push(
-                fetch(matchFile)
-                    .then(res => res.text())
-                    .then(text => (new window.DOMParser()).parseFromString(text, "text/xml"))
-                    .then(data => data.getElementsByTagName("Spele")[0])
-            );
-        });
-
-        Promise.all(matchesXMLData)
-            .then(matches => console.log(matches));
-    }
-
-    function getMatchesXMLData(matchesData) {
-        for (const match in matchesData) {
-            matchesData[match]().then(({default: matchFileName}) => {
-                matchesXmlFileNames.push(matchFileName);
-            });
-        }
-    };
-
-    function loadMatchesXMLData() {
-        getMatchesXMLData(firstRoundMatches);
-        getMatchesXMLData(secondRoundMatches);
-    }
 
     function parseMatchData() {
         // Lauki, kuros glabās informāciju par katru komandu
@@ -172,12 +131,10 @@
         console.log("Total ranking:", tournamentData);
     };
 
-    onMount(async() => {
-        const { matchesJson } = data;
-        matchesJsonData = matchesJson;
-
+    onMount(() => {
+        matchesJsonData = LFLData.getData();
         parseMatchData();
-    });
+    })
 
 </script>
 

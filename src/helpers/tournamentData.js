@@ -1,5 +1,3 @@
-import { initializeEmptyObjectFromColumns } from "./generators";
-
 /**
  * Aprēķina komandas iegūto punktu skaitu pēc sekojošajiem LFL noteikumiem:
  * "Par uzvaru pamatlaikā komanda saņem PIECUS punktus, 
@@ -178,4 +176,47 @@ export function parseTeamGoals(teamGoals, teamName) {
 
     return [result, {...teamGoalInfo}];
 
+}
+
+/**
+ * Pārbauda, vai augšupielādētais mačs nesakrīt ar kādu no iepriekš augšupielādētiem mačiem.
+ * Mačs skaitās kā pieņemams, ja izpildās šādas prasības:
+ *      1. Katrai komandai, kas ir jaunajā augšupielādētajā mačā,
+ * 
+ * @param {Object} uploadedMatchData - augšupielādētā mača saturs
+ * @param {Object[]} storedMatchData - visi iepriekš saglabātie mači
+ * @returns 
+ */
+export function validateNewMatchData(uploadedMatchData, storedMatchData) {
+    let result = true;
+
+    return result;
+}
+
+/**
+ * Funkcija, kas pārbauda katra augšupielādētā mača saturu un to salīdzina ar katru augšupielādēto maču sistēmā.
+ * Ja mačs, kas tiek augšupielādēts, ir jau iepriekš izspēlēts (tas ir, ja kāda no augšupielādētā mača komandām),
+ * tad šo failu ignorē un iet tālāk pie nākošā.
+ * 
+ * Rezultātā tiek atgriezts saraksts ar tiem augšupielādētajiem mačiem
+ * 
+ * @param {Object[]} uploadedLFLData 
+ * @param {Object[]} storedLFLData 
+ * @returns 
+ */
+export function parseUploadedMatchData(uploadedLFLData, storedLFLData) {
+    let validMatches = uploadedLFLData.filter((uploadedMatchData) => {
+        console.log("Currently processed uploaded match:", uploadedMatchData);
+
+        let isValidMatch = validateNewMatchData(uploadedMatchData, storedLFLData);
+
+        if (isValidMatch) {
+            return uploadedMatchData;
+        }
+    });
+
+    
+    let combinedMatchData = storedLFLData.concat(validMatches);
+
+    return combinedMatchData;
 }

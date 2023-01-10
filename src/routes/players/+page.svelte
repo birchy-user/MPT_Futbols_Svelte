@@ -1,9 +1,15 @@
 <script>
+    import { onMount } from "svelte";
+
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
 
-    const title = 'LFL līgas rezultatīvākie spēlētāji';
+    import { LFLData } from "$lib/stores";
 
+    import { getTeamsFromMatches, getPlayersAtMatchEndForTeams } from "$helpers/teamsData";
+    import { aggregatePlayersOfTeamsByScoredGoals } from "$helpers/topScorerData";
+
+    const title = 'LFL līgas rezultatīvākie spēlētāji';
     const breadcrumbs = [
         {
             href: '/',
@@ -26,6 +32,17 @@
     };
 
     const topScorerTableColumns = Object.keys(topScorerTableParams);
+
+    let playerData = [];
+
+    function getTopScorersInAllMatches() {
+
+    }
+
+    onMount(() => {
+        playerData = LFLData.getData();
+        console.log("playerData in /players is:", playerData);
+    });
 </script>
 
 <PageTitle {title} />

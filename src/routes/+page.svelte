@@ -3,29 +3,27 @@
 	import PageTitle from "$components/PageTitle.svelte";
     import Football from "$components/icons/Football.svelte";
 
+    import { LFLData } from "$lib/stores";
+
     // Ielādētie maču faili:
     /** @type {FileList} */
     let files;
-
-    // Maču dati:
-    let matchesJsonData = [];
 
     // Apstrādā augšupielādētos failus un pārbauda, vai tie ir pareizi JSON faili:
     $: if (files) {
         console.log("Augšupielādētie faili:", files);
 
-        // const uploadedFiles = Array.from(files);
+        // Maču dati (iztukšo katru reizi, kad augšupielādē jaunus failus):
+        let matchesJsonData = [];
 
         for (const file of files) {
-            // const fileReader = new FileReader();
-            const fileContents = file.text();
-
-            fileContents.then((matchData) => {
-                matchesJsonData.push(matchData);
-            });
+            matchesJsonData.push(file.text());
         }
 
-        console.log("Matches Data:", matchesJsonData);
+        Promise.all(matchesJsonData)
+            .then((matchData) => {
+                LFLData.set(matchData);
+            });
     };
 </script>
 
