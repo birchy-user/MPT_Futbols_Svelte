@@ -1,14 +1,13 @@
 <script>
     import { onMount } from "svelte";
 
-	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/tournamentData";
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
 	import Spinner from "$components/loader/Spinner.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
 	import Table from "$components/Table.svelte";
 
-    import { LFLData } from "$lib/stores";
-	import { getParsedJsonData } from "$helpers/generators";
+    import { LFLMatches } from "$lib/stores";
+	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/tournamentData";
 
     const title = 'LFL līgas turnīra statistika';
     const breadcrumbs = [
@@ -42,8 +41,7 @@
 
         let topScorerPlayerData = [];
 
-        matchesJsonData.forEach((match, i) => {
-            const matchData = match.Spele;
+        matchesJsonData.forEach((matchData, i) => {
             const matchTeams = matchData.Komanda; 
             const matchReferees = matchData.T;
             const matchMainReferee = matchData.VT;
@@ -63,7 +61,7 @@
             console.log();
 
             matchTeams.forEach((team, i) => {
-                console.log(`TEAM DATA for match nr.${i+1}:`, team);
+                // console.log(`TEAM DATA for match nr.${i+1}:`, team);
                 const teamName = team.Nosaukums;
                 const teamMainRoster = team.Pamatsastavs;
                 const teamPlayers = team.Speletaji;
@@ -105,10 +103,10 @@
                 };
             });
 
-            console.log();
+            console.log("PlayerData for each team:", playerData);
 
             // console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°");
-            // console.dir("Goals scored by each team:", matchTeamGoalStatistics);
+            console.dir("Goals scored by each team:", matchTeamGoalStatistics);
             // console.dir("matchTotalGoalCountForEachTeam DATA AFTER EACH TEAM IS PROCESSED FOR MATCH:", matchTotalGoalCountForEachTeam);
             // console.log("°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°");
             
@@ -132,7 +130,7 @@
     };
 
     onMount(() => {
-        matchesJsonData = LFLData.getData();
+        matchesJsonData = [...$LFLMatches];
         parseMatchData();
     })
 

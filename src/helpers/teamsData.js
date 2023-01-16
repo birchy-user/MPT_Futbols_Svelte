@@ -1,3 +1,4 @@
+
 export function getFinalRosterOfTeam(team) {
     const teamMainRoster = team.Pamatsastavs;
     const teamPlayers = team.Speletaji;
@@ -34,65 +35,25 @@ export function getTeamsFromMatches(listOfMatches) {
     
         let result = {
             Laiks: matchDate.getTime(),
-            Komandas: {
-                [firstTeam.Nosaukums]: {
-                    Pamatsastavs: firstTeam.Pamatsastavs,
-                    Mainas: firstTeam.Mainas,
-                    Speletaji: firstTeam.Speletaji
-                },
-                [secondTeam.Nosaukums]: {
-                    Pamatsastavs: secondTeam.Pamatsastavs,
-                    Mainas: secondTeam.Mainas,
-                    Speletaji: secondTeam.Speletaji
-                }
-            }
+            Komandas: [firstTeam.Nosaukums, secondTeam.Nosaukums]
+            // Komandas: {
+            //     [firstTeam.Nosaukums]: {
+            //         Pamatsastavs: firstTeam.Pamatsastavs,
+            //         Mainas: firstTeam.Mainas,
+            //         Speletaji: firstTeam.Speletaji
+            //     },
+            //     [secondTeam.Nosaukums]: {
+            //         Pamatsastavs: secondTeam.Pamatsastavs,
+            //         Mainas: secondTeam.Mainas,
+            //         Speletaji: secondTeam.Speletaji
+            //     }
+            // }
         };
     
         acc.push(result);
         
         return [...acc];
     }, []);
-
-    return result;
-}
-
-export function aggregateMatchesByTimeAndParticipatingTeams(listOfMatches) {
-    let aggregateResult = getTeamsFromMatches(listOfMatches);
-
-    let moreTest = aggregateResult.filter((currentMatch, i, newTest) => {
-        if (i === 0) { 
-            return true;
-        }
-        
-        const prevMatch = newTest[i-1];
-        const prevMatchTime = prevMatch.Laiks;
-    
-        const currentMatchTime = currentMatch.Laiks;
-    
-        const prevMatchTeams = Object.keys(prevMatch.Komandas);
-        const currentMatchTeams = Object.keys(currentMatch.Komandas);
-    
-        console.log("Tekošā komanda | iepriekšējā komanda");
-        console.log(prevMatchTeams, currentMatchTeams);
-        console.log(prevMatchTime, currentMatchTime);
-    
-        let comparisonResult = prevMatchTime === currentMatchTime;
-    
-        if (comparisonResult) {
-            currentMatchTeams.every((teamName, i) => {
-                if (prevMatchTeams.includes(teamName)) {
-                    return false;
-                }
-    
-                return true;
-            });
-        }
-        
-    
-        return comparisonResult;
-    });
-
-    let result = [...listOfMatches];
 
     return result;
 }

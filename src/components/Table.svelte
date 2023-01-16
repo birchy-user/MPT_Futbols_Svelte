@@ -3,7 +3,7 @@
     export let tableParams = {};
     export let tableData = [];
 
-    const tableColumns = Object.keys(tableParams); 
+    const tableColumns = Object.keys(tableParams);
 </script>
 
 <table class="tournament-data-table min-w-full text-sm text-gray-400">
@@ -27,6 +27,7 @@
                 </td>
 
                 {#each tableColumns as column}
+                    {console.log("Tekošie dati table komponentē: ", column, key, data, i, tableData[i])}
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span>{data[column]}</span>
                     </td>    

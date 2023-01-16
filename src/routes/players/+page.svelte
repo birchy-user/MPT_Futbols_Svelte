@@ -4,10 +4,7 @@
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
 
-    import { LFLData } from "$lib/stores";
-
-    import { getTeamsFromMatches, getPlayersAtMatchEndForTeams } from "$helpers/teamsData";
-    import { aggregatePlayersOfTeamsByScoredGoals } from "$helpers/topScorerData";
+    import { LFLMatches, LFLTopGoalScorers } from "$lib/stores";
 
     const title = 'LFL līgas rezultatīvākie spēlētāji';
     const breadcrumbs = [
@@ -16,7 +13,6 @@
             label: 'Sākums'
         },
         {
-            href: '/players',
             label: 'Rezultatīvākie spēlētāji'
         }
     ];
@@ -33,19 +29,17 @@
 
     const topScorerTableColumns = Object.keys(topScorerTableParams);
 
-    let playerData = [];
-
-    function getTopScorersInAllMatches() {
-
-    }
+    let playerData;
 
     onMount(() => {
-        playerData = LFLData.getData();
-        console.log("playerData in /players is:", playerData);
+        playerData = [...$LFLTopGoalScorers];
+
+        console.log("LFLMatches data: ", $LFLMatches);
+
+        console.log("TopGoalScorer data in /players:", playerData);
     });
 </script>
 
 <PageTitle {title} />
 
 <Breadcrumbs {breadcrumbs} {title} />
-

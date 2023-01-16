@@ -9,6 +9,10 @@
         {
             label: 'Rezultatīvākie spēlētāji',
             url: '/players'
+        },
+        {
+            label: 'Stingrākie tiesneši',
+            url: '/referee-fouls'
         }
     ];
 

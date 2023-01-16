@@ -130,6 +130,52 @@ export function getWinnerOfMatch(matchTotalGoalCountForEachTeam) {
     return result;
 }
 
+export function parseGoalData(goal) {
+    let listOfAssists = goal.P;
+    let assists = [];
+
+    if (listOfAssists !== undefined) {
+        if (listOfAssists.constructor.name == "Array") {
+            listOfAssists.forEach(A => {
+                assists.push(A.nr);
+            });
+        } else if (listOfAssists.constructor.name == "Object") {
+            assists.push(listOfAssists.Nr);
+        }
+    }
+    
+    assists = assists.filter((val) => val !== undefined);
+
+    return {
+        teamScoringTime: goal.Laiks,
+        teamScorerNumber: goal.Nr,
+        teamGoalType: goal.Sitiens,
+        teamAssistedBy: assists
+    };
+}
+
+export function parseGoalScoringInfoForTeam(teamGoals, teamName) {
+    let result = [];
+
+    if (teamGoals !== undefined) {
+        if (teamGoals.constructor.name == "Array") {
+            teamGoals.forEach(goal => {
+                result.push({
+                    teamName: teamName,
+                    ...parseGoalData(goal)
+                });
+            });
+        } else if (teamGoals.constructor.name == "Object") {
+            result.push({
+                teamName: teamName,
+                ...parseGoalData(teamGoals)
+            });
+        }
+    }
+
+    return result;
+}
+
 /**
  * 
  * @param {Object[]} teamGoals
@@ -140,25 +186,7 @@ export function parseTeamGoals(teamGoals, teamName) {
     let result = [];
     let teamGoalInfo = {};
 
-    if (teamGoals !== undefined) {
-        if (teamGoals.constructor.name == "Array") {
-            teamGoals.forEach(goal => {
-                result.push({
-                    teamName: teamName,
-                    teamScoringTime: goal.Laiks,
-                    teamScorerNumber: goal.Nr,
-                    teamGoalType: goal.Sitiens
-                });
-            });
-        } else if (teamGoals.constructor.name == "Object") {
-            result.push({
-                teamName: teamName,
-                teamScoringTime: teamGoals.Laiks,
-                teamScorerNumber: teamGoals.Nr,
-                teamGoalType: teamGoals.Sitiens
-            });
-        }
-    }
+    result = parseGoalScoringInfoForTeam(teamGoals, teamName);
 
     teamGoalInfo = result.reduce((acc, currentValue) => {
         acc.teamName = teamName;
@@ -179,16 +207,64 @@ export function parseTeamGoals(teamGoals, teamName) {
 }
 
 /**
- * Pārbauda, vai augšupielādētais mačs nesakrīt ar kādu no iepriekš augšupielādētiem mačiem.
- * Mačs skaitās kā pieņemams, ja izpildās šādas prasības:
- *      1. Katrai komandai, kas ir jaunajā augšupielādētajā mačā,
- * 
- * @param {Object} uploadedMatchData - augšupielādētā mača saturs
- * @param {Object[]} storedMatchData - visi iepriekš saglabātie mači
+ * Funkcija, kas salīdzina padoto maču ar iepriekš ielādētajiem mačiem pēc sekojošajiem kritērījiem:
+ *      1. Ja ielādētā mača datums sakrīt ar kādu no iepriekšējiem mačiem, tad skatās:
+ *          1.1. Ja ielādētā mača komandu sarakstā ietilpst kaut viena no iepriekšējā mača komandām, tad 
+ *               šo maču atzīmē kā nederīgu un ignorē
+ *
+ * @param {Object} currentMatch 
+ * @param {Object[]} previouslyLoadedMatches 
  * @returns 
  */
-export function validateNewMatchData(uploadedMatchData, storedMatchData) {
-    let result = true;
+export function isCurrentMatchAlreadyLoaded(currentMatch, previouslyLoadedMatches) {
+    const currentMatchTeams = currentMatch.Komanda.map(teamData => teamData.Nosaukums);
+    const currentMatchTime  = new Date(currentMatch.Laiks).getTime();
+
+    let isMatchAlreadyLoaded = !previouslyLoadedMatches.some(previousMatchData => {
+        const previousMatchTime  = new Date(previousMatchData.Laiks).getTime();
+        const previousMatchTeams = previousMatchData.Komanda.map(teamData => teamData.Nosaukums);
+        
+        let shouldMatchBeSkipped = previousMatchTime === currentMatchTime;
+        
+        if (shouldMatchBeSkipped) {
+            shouldMatchBeSkipped = currentMatchTeams.some((teamName) => {
+                return previousMatchTeams.includes(teamName);
+            });
+        }
+        
+        return shouldMatchBeSkipped;
+    });
+
+    return isMatchAlreadyLoaded;
+}
+
+/**
+ * Pārbauda, vai katrs no augšupielādētajiem mačiem nesakrīt ar kādu no iepriekš saglabātiem vai augšupielādētiem mačiem.
+ * 
+ * @param {Object[]} uploadedMatchData - augšupielādētie mači
+ * @param {Object[]} storedMatchData   - visi iepriekš saglabātie mači, ja tādi ir (ja nav, pie katra augšupielādētā mača skatās tos, kas atrodas pirms tā)
+ * @returns 
+ */
+export function validateNewMatchData(uploadedMatchData, storedMatchData = []) {
+    let result = uploadedMatchData.filter((currentMatchData, currentIndex, unpackedData) => {
+        let res = true;
+
+        // Ja ir padoti mači, kas iepriekš ir saglabāti, tad tos izmanto salīdzināšanai.
+        // Pretējā gadījumā izmanto visus tos mačus, kas ir pirms tekošā mača:
+        let previouslyLoadedMatches = [];
+
+        if (storedMatchData.length > 0) {
+            previouslyLoadedMatches = [...storedMatchData];
+            res = isCurrentMatchAlreadyLoaded(currentMatchData, previouslyLoadedMatches);
+        } else {
+            previouslyLoadedMatches = unpackedData.slice(0, currentIndex);
+
+            // Ja nav padoti iepriekš saglabātie mači, tad pirmo vienmēr ielādēs, bet nākošos salīdzinās ar iepriekš ielādētajiem:
+            res = (currentIndex === 0) ? true : isCurrentMatchAlreadyLoaded(currentMatchData, unpackedData.slice(0, currentIndex));
+        }
+
+        return res;
+    });
 
     return result;
 }
@@ -200,23 +276,14 @@ export function validateNewMatchData(uploadedMatchData, storedMatchData) {
  * 
  * Rezultātā tiek atgriezts saraksts ar tiem augšupielādētajiem mačiem
  * 
- * @param {Object[]} uploadedLFLData 
- * @param {Object[]} storedLFLData 
+ * @param {Object[]} uploadedLFLData
+ * @param {Object[]} previouslyLoadedMatches
  * @returns 
  */
-export function parseUploadedMatchData(uploadedLFLData, storedLFLData) {
-    let validMatches = uploadedLFLData.filter((uploadedMatchData) => {
-        console.log("Currently processed uploaded match:", uploadedMatchData);
+export function parseUploadedMatchData(uploadedLFLData, previouslyLoadedMatches = []) {
+    debugger;
 
-        let isValidMatch = validateNewMatchData(uploadedMatchData, storedLFLData);
+    let result = validateNewMatchData(uploadedLFLData, previouslyLoadedMatches);
 
-        if (isValidMatch) {
-            return uploadedMatchData;
-        }
-    });
-
-    
-    let combinedMatchData = storedLFLData.concat(validMatches);
-
-    return combinedMatchData;
+    return result;
 }

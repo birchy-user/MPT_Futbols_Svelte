@@ -3,81 +3,199 @@ import { writable, get, derived } from 'svelte/store';
 
 import { parseArrayOfJsonStrings } from "$helpers/generators";
 import { parseUploadedMatchData } from "$helpers/tournamentData";
-import { aggregateMatchesByTimeAndParticipatingTeams } from "$helpers/teamsData";
+import { aggregatePlayersOfTeamsByScoredGoals } from "$helpers/topScorerData";
 
 const key = "LFLData";
 
-function isLFLDataStored() {
-    return localStorage.getItem(key);
-}
-
 function mergeUploadedStoredLFLData(parsedUploadData) {
-    let parsedMatchData = aggregateMatchesByTimeAndParticipatingTeams(parsedUploadData);
-    const storedLFLData = isLFLDataStored();
-
-    // Vispirms iet cauri katram augšupielādētajam failam un pārbauda, vai tajā nav 
+    let uploadDataUnpackedByMatchProperty = parsedUploadData.map(matchData => matchData.Spele);
+    let parsedMatchData = [...parseUploadedMatchData(uploadDataUnpackedByMatchProperty)];
     
+    const storedLFLData = localStorage.getItem(key);
     if (storedLFLData != null) {
         // Ievietot loģiku, kas apstrādā jau saglabātos mačus.
         // Pēc maču pārbaudes apvieno jaunos kopā ar vecajiem un saglabā iekš localStorage
+        
+        // let combinedMatchData = JSON.parse(storedLFLData).concat(parsedMatchData);
+
+
+        // Ja localStorage jau ir saglabāti dati, tos apvieno un savā starpā pārbauda (katru )
         parsedMatchData = [...parseUploadedMatchData(parsedMatchData, JSON.parse(storedLFLData))];
     }
 
     if (parsedMatchData.length > 0) {
         localStorage.setItem(key, JSON.stringify(parsedMatchData));
     }
+
+    return parsedMatchData;
 }
 
-const getLFLData = () => {
+function getLFLData() {
     const initialStore = writable([]);
 
-    const {subscribe, set} = initialStore;
+    const {subscribe, update, set} = initialStore;
 
     if (!browser) {
         return initialStore;
     }
 
-    // Nosaka, kā apstrādāt katru jauno pievienoto vērtību
-    subscribe((value) => {
-        if (value === null || value === undefined) {
-            console.log("Is data empty?");
-            localStorage.removeItem(key);
-        } else {
-            const parsedUploadData = parseArrayOfJsonStrings(value);
-
-            if (parsedUploadData.length > 0) {
-                console.log("Set new value:", parsedUploadData);
-                mergeUploadedStoredLFLData(parsedUploadData);
-            }
-        }
-    });
-
-    // window.addEventListener('storage', () => {
-    //     const savedLFLData = localStorage.getItem(key);
-    //     if (savedLFLData == null) {
-    //         return;
-    //     }
-
-    //     const LFLDataCollection = JSON.parse(savedLFLData);
-    //     set(LFLDataCollection);
-    // });
-
     return {
         subscribe,
-        set: (value) => (set(value)),
-        getData: () => {
-            return JSON.parse(localStorage.getItem(key)) ?? [];
-        }
+        setData: (value) => {
+            let valueToStore = [];
+
+            if (value === null || value === undefined) {
+                console.log("Is data empty?");
+                localStorage.removeItem(key);
+            } else {
+                valueToStore = parseArrayOfJsonStrings(value);
+
+                console.log("Value is being set:", valueToStore);
+
+                if (valueToStore.length > 0) {
+                    valueToStore = mergeUploadedStoredLFLData(valueToStore);
+                }
+            }
+
+            set(valueToStore);
+        },
+        // getStoredData: () => {
+        //     return JSON.parse(localStorage.getItem(key)) ?? [];
+        // }
     };
 };
 
+function getLFLMatchesData($LFLData) {
+    let result = $LFLData;
+
+    if ($LFLData.length > 0 === false) {
+        // return LFLData.getStoredData();
+
+        if (browser) {
+            result = JSON.parse(localStorage.getItem(key)) ?? [];
+        }
+    }
+
+    return result;
+}
+
 export const LFLData = getLFLData();
 
-export const LFLMatchTeams = derived(
+// Visi mači (spēles) no iepriekš augšupielādētajiem mačiem (ja nekas vēl nav augšupielādēts, tad neko neatgriež)
+export const LFLMatches = derived(
     LFLData,
-    $LFLData => {
-        console.log("Data when trying to fetch teams:", $LFLData[0]);
+    $LFLData => getLFLMatchesData($LFLData)
+);
+
+// Saraksts ar komandām, kuras piedalījās LFL mačos (katrs ieraksts ir saraksts ar divām komandām, kas piedalījās mačā):
+export const LFLTeamsByMatches = derived(
+    LFLMatches,
+    $LFLTeamsByMatches => $LFLTeamsByMatches.map(matchData => matchData.Komanda)
+);
+
+// Saraksts ar visiem sodiem katrā mačā
+export const LFLFoulsByMatches = derived(
+    LFLTeamsByMatches,
+    $LFLFoulsByMatches => {
+        return $LFLFoulsByMatches.map(teamsOfMatch => {
+            let result = teamsOfMatch.reduce((finalFouls, teamData) => {
+                const teamName = teamData.Nosaukums;
+                let teamFouls = teamData.Sodi;
+                
+                if (teamFouls !== "") {
+                    const teamFoulsInner = teamFouls.Sods;
+                    if (teamFoulsInner.constructor.name == "Array") {
+                        teamFoulsInner.forEach(foul => {
+                            finalFouls.push({
+                                ...foul, 
+                                KomandasNosaukums: teamName
+                            });
+                        });
+                    } else if (teamFoulsInner.constructor.name == "Object") {
+                        finalFouls.push({...teamFoulsInner, KomandasNosaukums: teamName});
+                    }
+                }
+        
+                return finalFouls;
+            }, []);
+            
+            return result; 
+        });
     }
+)
+
+// Saraksts ar visiem vecākajiem tiesnešiem (VT) no visiem LFL mačiem:
+export const LFLRefereesByMatches = derived(
+    LFLMatches,
+    $LFLRefereesByMatches => $LFLRefereesByMatches.map(matchData => matchData.VT)
+);
+
+// Kad visu maču sodu un vecāko tiesnešu saraksti tiek atjaunināti, tad atkal atjauno apvienoto sarakstu,
+// kur katrs ieraksts ir objekts, kas satur informāciju par i-tā mača vecāko tiesnesi un viņa piešķirtajiem sodiem i-tā mača laikā
+export const LFLRefereesByReportedFouls = derived(
+    [LFLFoulsByMatches, LFLRefereesByMatches],
+    ([$LFLFoulsByMatches, $LFLRefereesByMatches]) => {
+        let refereesByReportedFoulsMap = $LFLRefereesByMatches.reduce((acc, referee, index) => {
+            let goalsForRefereeInMatch = $LFLFoulsByMatches[index];
+
+            let result = {
+                ...referee,
+                Sodi: goalsForRefereeInMatch
+            };
+
+            acc.push(result);
+
+            return acc;
+        }, []);
+
+        return refereesByReportedFoulsMap;
+    }
+);
+
+// Līdzīgs sarakstam "LFLRefereesByReportedFouls", taču šeit katram tiesnesim papildus tiek atgriezts kopā piešķirto sodu skaits, 
+// kā arī vidēji piešķirto sodu skaits vienā spēlē:
+export const LFLRefereesByAverageFoulsInEachMatch = derived(
+    LFLRefereesByReportedFouls,
+    $LFLRefereesByReportedFouls => {
+        let totalFoulsByReferee = {},
+            totalMatchesByReferee = {},
+            results = [];
+
+        for (let i = 0; i < $LFLRefereesByReportedFouls.length; i++) {
+            const [refereeName, refereeLastname, refereeFouls] = Object.values($LFLRefereesByReportedFouls[i]);
+
+            const combinedRefereeName = `${refereeName} ${refereeLastname}`;
+            if (!(combinedRefereeName in totalMatchesByReferee)) {
+                totalFoulsByReferee[combinedRefereeName] = 0;
+                totalMatchesByReferee[combinedRefereeName] = 0;
+            }
+
+            totalFoulsByReferee[combinedRefereeName] += refereeFouls.length;
+            totalMatchesByReferee[combinedRefereeName]++;
+        }
+
+        for (let referee in totalFoulsByReferee) {
+            let [refereeName, refereeLastname] = referee.split(' ');
+            results.push({
+                Vards: refereeName,
+                Uzvards: refereeLastname,
+                VidejieSodiMaca: totalFoulsByReferee[referee] / totalMatchesByReferee[referee],
+                KopejieSodi: totalFoulsByReferee[referee]
+            });
+        }
+
+        // Sakārto iegūto sarakstu pēc mačā vidēji piešķirtajiem sodiem (dilstošā secībā).
+        // Ja ir vienādi vidējie sodi mačā, tad sakārto pēc kopā iegūtajiem sodiem (dilstošā secībā).
+        results.sort((prevRef, nextRef) => nextRef.VidejieSodiMaca - prevRef.VidejieSodiMaca || nextRef.KopejieSodi - prevRef.KopejieSodi);
+
+        return results;
+    }
+)
+
+
+export const LFLTopGoalScorers = derived(
+    LFLMatches,
+    $LFLMatches => aggregatePlayersOfTeamsByScoredGoals($LFLMatches) ?? {}
 );
 /**
  * Atgriež funkciju, kuru izsaucot var iegūt sarakstu ar komandām, izmantojot Svelte "stores" funkcionalitāti un saglabāto "LFLData" datu kolekciju.
