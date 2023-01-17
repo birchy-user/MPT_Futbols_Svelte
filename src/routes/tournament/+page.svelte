@@ -44,7 +44,7 @@
 
             // Komandas statistikas dati
             let matchTotalGoalCountForEachTeam = [];
-            let matchTeamGoalStatistics = [];
+            // let matchTeamGoalStatistics = [];
             let teamStatisticsForMatch = {};
 
             console.log();
@@ -55,8 +55,9 @@
                 // Vārti, kas var būt tukši katrai komandai:
                 const teamGoals = team.Varti || {};
 
-                let [teamGoalStatistics, teamGoalInfo] = parseTeamGoals(teamGoals.VG, teamName);
-                matchTeamGoalStatistics.push(teamGoalStatistics);
+                // let [teamGoalStatistics, teamGoalInfo] = parseTeamGoals(teamGoals.VG, teamName);
+                let teamGoalInfo = parseTeamGoals(teamGoals.VG, teamName);
+                // matchTeamGoalStatistics.push(teamGoalStatistics);
                 matchTotalGoalCountForEachTeam.push(teamGoalInfo);
 
                 teamStatisticsForMatch[teamName] = teamGoalInfo;
@@ -86,19 +87,7 @@
 
 <Breadcrumbs {breadcrumbs} {title} />
 
-<div class="flex flex-col w-screen min-h-screen py-10">
-    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-        <div class="shadow overflow-hidden sm:rounded-lg">
-            {#if matchesJsonData.length > 0 === false} 
-                <div class="bg-gray-800">
-                    <Spinner classes="" />
-                </div>
-            {:else}
-                <Table 
-                    tableParams={tournamentResultsTableParams}
-                    tableData={tournamentData}
-                />
-            {/if}
-        </div>
-    </div>
-</div>
+<Table 
+    tableParams={tournamentResultsTableParams}
+    tableData={tournamentData}
+/>

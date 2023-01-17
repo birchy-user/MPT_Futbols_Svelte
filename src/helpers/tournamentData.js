@@ -1,3 +1,5 @@
+import { parseArrayOrObjectDataByKeys } from "./generators";
+
 /**
  * Aprēķina komandas iegūto punktu skaitu pēc sekojošajiem LFL noteikumiem:
  * "Par uzvaru pamatlaikā komanda saņem PIECUS punktus, 
@@ -135,44 +137,28 @@ export function getWinnerOfMatch(matchTotalGoalCountForEachTeam) {
 
 export function parseGoalData(goal) {
     let listOfAssists = goal.P;
-    let assists = [];
-
-    if (listOfAssists !== undefined) {
-        if (listOfAssists.constructor.name == "Array") {
-            listOfAssists.forEach(A => {
-                assists.push(A.nr);
-            });
-        } else if (listOfAssists.constructor.name == "Object") {
-            assists.push(listOfAssists.Nr);
-        }
-    }
+    let assists = parseArrayOrObjectDataByKeys(listOfAssists, 'Nr');
     
     assists = assists.filter((val) => val !== undefined);
 
     return {
-        teamScoringTime: goal.Laiks,
-        teamScorerNumber: goal.Nr,
-        teamGoalType: goal.Sitiens,
-        teamAssistedBy: assists
+        IesistoVartuTips: goal.Sitiens,
+        Laiks: goal.Laiks,
+        RezultativiPiespeleja: assists,
+        VartuGuvejs: goal.Nr
     };
 }
 
-export function parseGoalScoringInfoForTeam(teamGoals, teamName) {
+export function parseGoalScoringInfoForTeam(teamGoals) {
     let result = [];
 
     if (teamGoals !== undefined) {
         if (teamGoals.constructor.name == "Array") {
             teamGoals.forEach(goal => {
-                result.push({
-                    teamName: teamName,
-                    ...parseGoalData(goal)
-                });
+                result.push({...parseGoalData(goal)});
             });
         } else if (teamGoals.constructor.name == "Object") {
-            result.push({
-                teamName: teamName,
-                ...parseGoalData(teamGoals)
-            });
+            result.push({...parseGoalData(teamGoals)});
         }
     }
 
@@ -186,16 +172,15 @@ export function parseGoalScoringInfoForTeam(teamGoals, teamName) {
  * @returns Object
  */
 export function parseTeamGoals(teamGoals, teamName) {
-    let result = [];
     let teamGoalInfo = {};
 
-    result = parseGoalScoringInfoForTeam(teamGoals, teamName);
+    let result = [...parseGoalScoringInfoForTeam(teamGoals)];
 
     teamGoalInfo = result.reduce((acc, currentValue) => {
         acc.teamName = teamName;
         acc.totalGoalsScored += 1;
         // Ja komanda iesita papildlaikā, tad tā arī uzvarēja maču
-        acc.hasTeamScoredInExtraTime = isGoalScoredInExtraTime(currentValue.teamScoringTime);
+        acc.hasTeamScoredInExtraTime = isGoalScoredInExtraTime(currentValue.Laiks);
         return acc;
     }, {
         teamName: teamName,
@@ -205,8 +190,7 @@ export function parseTeamGoals(teamGoals, teamName) {
         wonMatch: false
     });
 
-    return [result, {...teamGoalInfo}];
-
+    return teamGoalInfo;
 }
 
 /**

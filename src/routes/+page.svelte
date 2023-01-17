@@ -6,6 +6,8 @@
     import Table from "$components/Table.svelte";
     
     import { LFLData, LFLMatches } from "$lib/stores";
+
+    const title = "LFL augšupielādētie mači"
     
     // Augšupielādēto maču tabulas kolonnas:
     const matchesTableParams = {
@@ -19,7 +21,6 @@
     };
 
     // Augšupielādēto maču parādīšana:
-    let areMatchesLoaded = false;
     let savedMatches = [];
 
     // Ielādētie maču faili:
@@ -44,7 +45,6 @@
     };
 
     $: if ($LFLMatches !== undefined && $LFLMatches.length > 0) {
-        areMatchesLoaded = true;
         console.log("LFLMatches data when loading uploaded matches", $LFLMatches);
 
         savedMatches = $LFLMatches.map((matchData) => {
@@ -70,40 +70,31 @@
 
 <PageTitle />
 
-<div>
-    <div class="z-10 top-0 w-full h-full flex">
-        <div class="extraOutline p-4 bg-white w-max bg-whtie m-auto rounded-lg">
-            <div class="file_upload p-5 relative border-4 border-dotted border-gray-300 rounded-lg" style="width: 450px">
-                <div class="w-max mx-auto mb-4">
-                    <Football />
-                </div>
-                <div class="input_field flex flex-col w-max mx-auto text-center">
-                    <label>
-                        <input class="text-sm cursor-pointer w-36 hidden" 
-                            bind:files
-                            multiple
-                            type="file"
-                        />
-                        <div class="text bg-indigo-600 text-white border border-gray-300 rounded font-semibold cursor-pointer p-1 px-3 hover:bg-indigo-500">
-                            Augšupielādēt
-                        </div>
-                    </label>
-    
-                    <div class="title text-indigo-500">* vai iemest failus šeit</div>
-                </div>
+<div class="top-0 w-full h-full flex">
+    <div class="extraOutline p-4 w-max m-auto rounded-lg">
+        <div class="file_upload p-5 relative border-4 border-dotted border-gray-600 rounded-lg" style="width: 450px">
+            <div class="w-max mx-auto mb-4">
+                <Football />
+            </div>
+            <div class="input_field flex flex-col w-max mx-auto text-center">
+                <label>
+                    <input class="text-sm cursor-pointer w-36 hidden" 
+                        bind:files
+                        multiple
+                        type="file"
+                    />
+                    <div class="text bg-indigo-600 text-white border border-gray-300 rounded font-semibold cursor-pointer p-1 px-3 hover:bg-indigo-500">
+                        Augšupielādēt
+                    </div>
+                </label>
+
+                <div class="title text-indigo-500">* vai iemest failus šeit</div>
             </div>
         </div>
     </div>
 </div>
 
-<div>
-    {#if areMatchesLoaded && savedMatches.length > 0}
-        <Table
-            tableParams={matchesTableParams}
-            tableData={savedMatches}
-        />
-    {:else}
-        <span>Nav augšupielādētu maču...</span>
-        <Spinner />
-    {/if}
-</div>
+<Table
+    tableParams={matchesTableParams}
+    tableData={savedMatches}
+/>
