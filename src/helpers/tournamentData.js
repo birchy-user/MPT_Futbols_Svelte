@@ -92,7 +92,10 @@ export function calculateStatisticsForMatchTeams(teamRanking) {
     let sortedStatisticsByTotalPoints = Object.entries(statisticsForAllMatchesCombined)
             .sort(([, prevTeamData], [, nextTeamData]) => nextTeamData.totalPoints - prevTeamData.totalPoints);
 
-    return [...sortedStatisticsByTotalPoints];
+    // Visbeidzot atgriež iegūto sakārtoto tabulu kā masīvu, kur katrs elements ir atbilstošās komandas statistikas datu objekts:
+    let teamStatisticsCombined = sortedStatisticsByTotalPoints.map(([, teamData]) => ({...teamData}));
+
+    return [...teamStatisticsCombined];
 }
 
 export function isGoalScoredInExtraTime(scoringTime) {

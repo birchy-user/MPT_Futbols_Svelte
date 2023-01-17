@@ -1,36 +1,45 @@
 <script>
     import { onMount } from "svelte";
 
+    import YellowCard from "$components/icons/YellowCard.svelte";
+    import RedCard from "$components/icons/RedCard.svelte";
+
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
 	import Spinner from "$components/loader/Spinner.svelte";
     import Table from "$components/Table.svelte";
 
-    import { LFLMatches, LFLRefereesByAverageFoulsInEachMatch } from "$lib/stores";
+    import { LFLMatches } from "$lib/stores";
 
-    const title = 'LFL līgas stringrākie tiesneši';
+    const title = 'LFL līgas rupjāko spēlētāju saraksts';
     const breadcrumbs = [
         {
             href: '/',
             label: 'Sākums'
         },
         {
-            label: 'Stringrākie tiesneši'
+            href: '/players',
+            label: 'Rezultatīvākie spēlētāji'
+        },
+        {
+            label: 'Rupjākie spēlētāji'
         }
     ];
 
     // Desmit rezultatīvāko spēlētāju tabulas kolonnas:
-    const refereesByAvgFoulsTableParams = {
+    const playersByFoulsCommitted = {
         Vards: 'Vārds',
         Uzvards: 'Uzvārds',
-        VidejieSodiMaca: 'Vidējie piešķirtie sodi mačā',
-        KopejieSodi: 'Kopējie sodi pa visiem mačiem',
+        KopejieSodi: 'Kopējie sodi pa visiem mačiem'
     };
+
+    // const yellowAndRedCardIconCells = {
+    //     DzeltenasKartinas: <YellowCard />,
+    //     SarkanasKartinas: <RedCard />
+    // };
 
     onMount(() => {
         console.log("LFLMatches data: ", $LFLMatches);
-        
-        console.log("LFLRefereesByAverageFoulsInEachMatch in /referee-fouls:", $LFLRefereesByAverageFoulsInEachMatch);
     });
 </script>
 
@@ -41,17 +50,17 @@
 <div class="flex flex-col w-screen min-h-screen py-10">
     <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
         <div class="shadow overflow-hidden sm:rounded-lg">
-            {#if $LFLRefereesByAverageFoulsInEachMatch === undefined || $LFLRefereesByAverageFoulsInEachMatch.length > 0 === false}
+            {#if $LFLMatches === undefined || $LFLMatches.length > 0 === false}
                 <div class="bg-gray-800">
                     <Spinner 
                         classes="" 
-                        loadingText="Ielādē datus par stingrākajiem tiesnešiem..." 
+                        loadingText="Ielādē datus par rupjākajiem spēlētājiem..." 
                     />
                 </div>
             {:else}
                 <Table 
-                    tableParams={refereesByAvgFoulsTableParams}
-                    tableData={$LFLRefereesByAverageFoulsInEachMatch}
+                    tableParams={playersByFoulsCommitted}
+                    tableData={[]}
                 />
             {/if}
         </div>

@@ -11,6 +11,10 @@
             url: '/players'
         },
         {
+            label: 'Rupjākie spēlētāji',
+            url: '/players/fouls'
+        },
+        {
             label: 'Stingrākie tiesneši',
             url: '/referee-fouls'
         }
@@ -18,7 +22,7 @@
 
 </script>
 
-<header class="header border-b top-0 bg-white flex items-center px-3 py-2">
+<header class="header border-b top-0 bg-white flex items-center px-3 py-2 z-10">
     <div>
         <a href="/">
             <div class="flex flex-row items-center">
@@ -44,20 +48,6 @@
         <span>Roberts Pelle rp18023</span>
     </div>
 </header>
-
-<!-- <header class="top-0 w-full left-0 bg-white z-10">
-    <div class="flex container mx-auto items-center">
-		<nav class="mx-auto">
-			<ul class="flex">
-				{#each menuItems as item}
-					<li class="mx-1">
-						<a class="px-2 py-1" href={item.url}>{item.label}</a>
-					</li>
-				{/each}
-			</ul>
-		</nav>
-    </div>
-</header> -->
 
 <style lang="scss">
     .header {

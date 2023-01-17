@@ -2,22 +2,24 @@
 	import PageTitle from "$components/PageTitle.svelte";
     import Football from "$components/icons/Football.svelte";
 
-    import { LFLData, LFLMatches } from "$lib/stores";
 	import Spinner from "$components/loader/Spinner.svelte";
-
+    import Table from "$components/Table.svelte";
+    
+    import { LFLData, LFLMatches } from "$lib/stores";
+    
     // Augšupielādēto maču tabulas kolonnas:
     const matchesTableParams = {
-        nosaukums: 'Faila nosaukums',
         Laiks: 'Laiks',
-        Skatitaji: 'Skatītāji',
-        Vieta: 'Vieta',
-        VT: 'Vadošais tiesnesis',
         Komanda1: 'Komanda 1',
-        Komanda2: 'Komanda 2'
+        Komanda2: 'Komanda 2',
+        Skatitaji: 'Skatītāji',
+        T: 'Līnījtiesneši',
+        VT: 'Vecākais tiesnesis',
+        Vieta: 'Vieta'
     };
 
-    const matchesTableColumns = Object.keys(matchesTableParams);
-
+    // Augšupielādēto maču parādīšana:
+    let areMatchesLoaded = false;
     let savedMatches = [];
 
     // Ielādētie maču faili:
@@ -33,16 +35,6 @@
 
         for (const file of files) {
             matchesJsonData.push(file.text());
-
-            // savedMatches.push({
-            //     nosaukums: ,
-            //     Laiks:,
-            //     Skatitaji:,
-            //     Vieta:,
-            //     VT: ,
-            //     Komanda1: ,
-            //     Komanda2:
-            // });
         }
 
         Promise.all(matchesJsonData)
@@ -50,6 +42,29 @@
                 LFLData.setData(matchData);
             });
     };
+
+    $: if ($LFLMatches !== undefined && $LFLMatches.length > 0) {
+        areMatchesLoaded = true;
+        console.log("LFLMatches data when loading uploaded matches", $LFLMatches);
+
+        savedMatches = $LFLMatches.map((matchData) => {
+            let [firstTeam, secondTeam] = matchData.Komanda.map(team => team.Nosaukums);
+            let [firstAssistantReferee, secondAssistantReferee] = matchData.T.map(assistantRef => `${assistantRef.Vards} ${assistantRef.Uzvards}`);
+            let matchOfficial = matchData.VT;
+
+            return {
+                Laiks: matchData.Laiks,
+                Komanda1: firstTeam,
+                Komanda2: secondTeam,
+                Skatitaji: matchData.Skatitaji,
+                T: `${firstAssistantReferee} un ${secondAssistantReferee}`,
+                VT: `${matchOfficial.Vards} ${matchOfficial.Uzvards}`,
+                Vieta: matchData.Vieta
+            }
+        });
+
+        console.log("Saved matches: ", savedMatches);
+    }
 
 </script>
 
@@ -82,16 +97,13 @@
 </div>
 
 <div>
-    {#if $LFLMatches !== undefined && $LFLMatches.length > 0}
-        {#each $LFLMatches as match}
-            <!-- <span>Laiks: {new Date(match.Laiks).toDateString()}</span> -->
-            <span>Vieta: {match.Vieta}</span>
-            {#each match.Komanda as team, i}
-                <span>Komanda nr.{i + 1}: {team.Nosaukums}</span>
-            {/each}
-        {/each}
+    {#if areMatchesLoaded && savedMatches.length > 0}
+        <Table
+            tableParams={matchesTableParams}
+            tableData={savedMatches}
+        />
     {:else}
-        <span>Ielādē saglabātos mačus...</span>
+        <span>Nav augšupielādētu maču...</span>
         <Spinner />
     {/if}
 </div>

@@ -20,14 +20,14 @@
         </tr>
     </thead>
     <tbody class="bg-gray-800">
-        {#each tableData ?? [] as [key, data], i}
+        {#each tableData ?? [] as data, i}
             <tr class="{i % 2 == 0 ? 'bg-black bg-opacity-20' : ''}">
                 <td class="pl-4">
                     <span>{i + 1}</span>
                 </td>
 
                 {#each tableColumns as column}
-                    {console.log("Tekošie dati table komponentē: ", column, key, data, i, tableData[i])}
+                    <!-- {console.log("Tekošie dati table komponentē: ", column, key, data, i, tableData[i])} -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span>{data[column]}</span>
                     </td>    
