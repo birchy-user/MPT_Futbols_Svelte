@@ -1,6 +1,9 @@
 <script>
+	import { onMount } from "svelte";
 	import Spinner from "$components/loader/Spinner.svelte";
 
+    // Teksts, kuru rādīt tad, kad grib parādīt tukšu tabulu:
+    export let loadingText = "";
 
     // Tabulas kolonnu nosaukumi un dati, kurus attēlot kolonnā
     export let tableParams = {};
@@ -11,6 +14,12 @@
 
     const tableColumns = Object.keys(tableParams);
     const specialColumns = Object.keys(specialColumnParams);
+
+    let isLoaded = false;
+
+    onMount(() => {
+        isLoaded = true;
+    });
 </script>
 
 <div class="flex flex-col w-screen min-h-screen py-10">
@@ -39,12 +48,17 @@
                     </thead>
                     <tbody class="bg-gray-800">
                         {#if tableData === undefined || tableData.length > 0 === false}
-                            <td colspan="100">
-                                <Spinner
-                                    classes="" 
-                                    loadingText="Ielādē datus par stingrākajiem tiesnešiem..." 
-                                />
-                            </td>
+                            {#if isLoaded}
+                                {#if loadingText}
+                                    <td colspan="100" class="text-left pl-4 py-4">
+                                        <span>{loadingText}</span>
+                                    </td>                                    
+                                {/if}
+                            {:else}
+                                <td colspan="100">
+                                    <Spinner classes="" {loadingText} />
+                                </td>
+                            {/if}
                         {:else}
                             {#each tableData ?? [] as data, i}
                                 <tr class="{i % 2 == 0 ? 'bg-black bg-opacity-20' : ''}">

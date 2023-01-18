@@ -268,8 +268,6 @@ export function validateNewMatchData(uploadedMatchData, storedMatchData = []) {
  * @returns 
  */
 export function parseUploadedMatchData(uploadedLFLData, previouslyLoadedMatches = []) {
-    debugger;
-
     let result = validateNewMatchData(uploadedLFLData, previouslyLoadedMatches);
 
     return result;

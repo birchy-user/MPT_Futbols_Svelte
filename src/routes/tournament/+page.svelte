@@ -2,7 +2,6 @@
     import { onMount } from "svelte";
 
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
-	import Spinner from "$components/loader/Spinner.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
 	import Table from "$components/Table.svelte";
 
@@ -10,6 +9,7 @@
 	import { calculateStatisticsForMatchTeams, getWinnerOfMatch, parseTeamGoals } from "$helpers/tournamentData";
 
     const title = 'LFL līgas turnīra statistika';
+    const loadingText = "Nav datu";
     const breadcrumbs = [
         {
             href: '/',
@@ -44,10 +44,7 @@
 
             // Komandas statistikas dati
             let matchTotalGoalCountForEachTeam = [];
-            // let matchTeamGoalStatistics = [];
             let teamStatisticsForMatch = {};
-
-            console.log();
 
             matchTeams.forEach((team) => {
                 const teamName = team.Nosaukums;
@@ -55,9 +52,7 @@
                 // Vārti, kas var būt tukši katrai komandai:
                 const teamGoals = team.Varti || {};
 
-                // let [teamGoalStatistics, teamGoalInfo] = parseTeamGoals(teamGoals.VG, teamName);
                 let teamGoalInfo = parseTeamGoals(teamGoals.VG, teamName);
-                // matchTeamGoalStatistics.push(teamGoalStatistics);
                 matchTotalGoalCountForEachTeam.push(teamGoalInfo);
 
                 teamStatisticsForMatch[teamName] = teamGoalInfo;
@@ -72,8 +67,6 @@
         });
 
         tournamentData = calculateStatisticsForMatchTeams(teamRanking);
-
-        // console.log("Total ranking:", tournamentData);
     };
 
     onMount(() => {
@@ -90,4 +83,5 @@
 <Table 
     tableParams={tournamentResultsTableParams}
     tableData={tournamentData}
+    {loadingText}
 />

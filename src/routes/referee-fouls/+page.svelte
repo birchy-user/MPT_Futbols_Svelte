@@ -1,13 +1,12 @@
 <script>
-    import { onMount } from "svelte";
-
     import Breadcrumbs from "$components/Breadcrumbs.svelte";
 	import PageTitle from "$components/PageTitle.svelte";
     import Table from "$components/Table.svelte";
 
-    import { LFLMatches, LFLRefereesByAverageFoulsInEachMatch } from "$lib/stores";
+    import { LFLRefereesByAverageFoulsInEachMatch } from "$lib/stores";
 
     const title = 'LFL līgas stringrākie tiesneši';
+    const loadingText = "Nav datu";
     const breadcrumbs = [
         {
             href: '/',
@@ -25,12 +24,6 @@
         VidejieSodiMaca: 'Vidējie piešķirtie sodi mačā',
         KopejieSodi: 'Kopējie sodi pa visiem mačiem',
     };
-
-    onMount(() => {
-        console.log("LFLMatches data: ", $LFLMatches);
-        
-        console.log("LFLRefereesByAverageFoulsInEachMatch in /referee-fouls:", $LFLRefereesByAverageFoulsInEachMatch);
-    });
 </script>
 
 <PageTitle {title} />
@@ -40,4 +33,5 @@
 <Table 
     tableParams={refereesByAvgFoulsTableParams}
     tableData={$LFLRefereesByAverageFoulsInEachMatch}
+    {loadingText}
 />

@@ -1,9 +1,6 @@
 <script>
     import { onMount } from "svelte";
 
-    // import YellowCard from "$components/icons/YellowCard.svelte";
-    // import RedCard from "$components/icons/RedCard.svelte";
-
     import YellowCard from "$components/icons/YellowCard.svelte";
     import RedCard from "$components/icons/RedCard.svelte";
 
@@ -15,6 +12,7 @@
 	import { getFirstItemsByCount } from "$helpers/generators";
 
     const title = 'LFL līgas rupjāko spēlētāju saraksts';
+    const loadingText = "Nav datu";
     const breadcrumbs = [
         {
             href: '/',
@@ -48,12 +46,6 @@
 
     onMount(() => {
         playersByBookingsData = [...$LFLPlayersByBookings];
-
-        console.log("LFLMatches data in /players/fouls: ", $LFLMatches);
-
-        console.log("LFLFoulsByMatches data in /players/fouls:", $LFLFoulsByMatches);
-
-        console.log("LFLPlayersByBookings data in /players/fouls: ", playersByBookingsData);
     });
 </script>
 
@@ -64,5 +56,6 @@
 <Table 
     tableParams={playersByFoulsCommitted}
     tableData={getFirstItemsByCount(playersByBookingsData, 20)}
+    {loadingText}
     specialColumnParams={yellowAndRedCardColumns}
 />

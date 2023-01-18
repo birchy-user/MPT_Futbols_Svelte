@@ -9,6 +9,7 @@
     import { getFirstItemsByCount } from "$helpers/generators";
 
     const title = 'LFL līgas rezultatīvākie spēlētāji';
+    const loadingText = "Nav datu";
     const breadcrumbs = [
         {
             href: '/',
@@ -35,8 +36,6 @@
 
     onMount(() => {
         playerData = [...$LFLTopGoalScorers];
-
-        console.log("TopGoalScorer data in /players:", playerData);
     });
 </script>
 
@@ -47,4 +46,5 @@
 <Table 
     tableParams={topScorerTableParams}
     tableData={getFirstItemsByCount(playerData, 10)}
+    {loadingText}
 />
